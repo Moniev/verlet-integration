@@ -3,3 +3,5 @@ To build the project:
   2. mkdir build
   3. cmake ..
   4. make
+To run builded project from build directory:
+  1. ./verletIntegration
