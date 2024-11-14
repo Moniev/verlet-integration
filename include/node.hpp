@@ -6,15 +6,30 @@
 
 class Node{
     public:
-        Box &box;
-        std::unique_ptr<Node> root;
-        std::vector<std::unique_ptr<Node>> children;
+        Box box;
+        Node *root;
+        std::vector<Node*> children;
 
-        /* TO BE COMPLETED */
-        Node(Box &__box) 
+        Node(Box __box) 
             : box(__box)
-        {}
+            {}
 
+        void addNode(Node *node) {
+            if(children.size() < 4) {
+                node->root = this;
+                children.push_back(node);
+            }
+        };
+
+        void deleteNode(int i) {
+            children.erase(children.begin() + i);
+        }
+
+        const std::vector<Node*>& getChildren() {
+            return children;
+        }
+
+        void updateParticles();
 };
 
 #endif

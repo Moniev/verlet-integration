@@ -67,6 +67,17 @@ void Engine::checkCollisions() {
     }
 }
 
+//new recursive formula for collisions inside quad trees 
+void Engine::applyCollisions(Node &root) {
+    std::vector<Node*> childrens = root.getChildren();
+    root.box.resolveCollisions();
+    //to do: resolve moving particles beetwen quadtrees and their decomposition
+    for(auto &node: childrens) {
+        Engine::applyCollisions(*node);
+    
+    }
+}
+
 void Engine::applyBoundary(float sub_step_dt) {
     for(auto &particle: particles) {
         const sf::Vector2f r = boundary_center - particle.position;
@@ -100,7 +111,6 @@ void Engine::setSubStepCount(uint32_t steps)
 {
     sub_steps = steps;
 }
-
 
 sf::Vector3f Engine::getBoundary() const {
     return {boundary_center.x, boundary_center.y, boundary_radius};

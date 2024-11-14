@@ -1,13 +1,15 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
-#include "particle.hpp"
 
+#include "particle.hpp"
+#include "node.hpp"
 
 class Engine {
     
     public:
         float m_time = 0;
         float m_frame_dt = 0;
+        Node root;
 
         Engine() = default;
         Particle& addParticle(sf::Vector2f position, float radius, sf::Color color);
@@ -21,12 +23,12 @@ class Engine {
         sf::Vector3f getBoundary() const;
         void applyBoundary(float substep_dt);
         void updateObjects(const float dt);
-        void checkColliosions();
         void mousePull(sf::Vector2f position);
         void mousePush(sf::Vector2f position);
         void setParticleVelocity(Particle &particle, sf::Vector2f v);
         void setSimulationUpdateRate(uint32_t rate);
         void checkCollisions();
+        void applyCollisions(Node &root);
 
     private:
         sf::Vector2f gravity = {0.0f, 1000.0f};
