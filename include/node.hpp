@@ -5,15 +5,23 @@
 
 
 class Node{
+    static int i;
+
     public:
+        int idx;
         Box box;
         Node *root;
         std::vector<Node*> children;
 
+        Node() = default;
         Node(Box __box) 
-            : box(__box)
-            {}
-
+            : box(__box) {
+            i++;
+            idx = i;
+        }
+        ~Node() {
+            i--;
+        }
         void addNode(Node *node) {
             if(children.size() < 4) {
                 node->root = this;
@@ -25,11 +33,13 @@ class Node{
             children.erase(children.begin() + i);
         }
 
-        const std::vector<Node*>& getChildren() {
+        const std::vector<Node*> getChildren() {
             return children;
         }
 
         void updateParticles();
+
+        const Box getBox();
 };
 
-#endif
+#endif 

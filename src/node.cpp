@@ -11,10 +11,14 @@ void Node::deleteNode(int i) {
     children.erase(children.begin() + i);
 }
 
-const std::vector<Node*>& Node::getChildren() {
+const std::vector<Node*> Node::getChildren() {
     return children;
 }
 
 void Node::updateParticles() {
     
+}
+
+const Box Node::getBox() {
+    return box;
 }

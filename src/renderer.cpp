@@ -1,7 +1,7 @@
 #include "renderer.hpp"
 
 
-void Renderer::render(Engine &engine) const
+void Renderer::render(Engine &engine, bool debug)
 {
     //boundaries
     sf::CircleShape circle{1.0f};
@@ -22,5 +22,25 @@ void Renderer::render(Engine &engine) const
         circle.setScale(particle.radius, particle.radius);
         circle.setFillColor(particle.color);
         window.draw(circle);
+    }
+
+    if(debug) {
+        Node *root = engine.getQuadTree();
+        Renderer::renderQuadTree(root);
+    }
+}
+
+void Renderer::renderQuadTree(Node *node) {
+    for(const auto &__children : node->getChildren()) {
+        Box __box = node->box;
+        sf::Vector2f position = __box.getCenter();
+        sf::Vector2f size = __box.getSize();
+        sf::RectangleShape square;
+        square.setSize(size);
+        square.setPosition(position);
+        square.setOutlineColor(sf::Color::White);
+        square.setFillColor(sf::Color::Black);
+        window.draw(square);
+        Renderer::renderQuadTree(__children);
     }
 }

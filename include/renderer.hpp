@@ -15,7 +15,8 @@ class Renderer {
             : window(__window)
         {}
     
-        void render(Engine &engine) const;
+        void render(Engine &engine, bool debug);
+        void renderQuadTree(Node *node);
 };
 
 #endif

@@ -30,7 +30,6 @@ void Engine::mousePush(sf::Vector2f position) {
     }
 }
 
-
 void Engine::update() {
     float sub_step_dt = step_dt / sub_steps;
     m_time += m_frame_dt; 
@@ -45,7 +44,6 @@ void Engine::update() {
 
 void Engine::checkCollisions() {
     const float response_coef = 0.75f;
-
     for(int i = 0; i < particles.size(); i++){
         Particle &particle_1 = particles[i];
         for(int j = i + 1; j < particles.size(); j++){
@@ -56,10 +54,9 @@ void Engine::checkCollisions() {
             if(pre_dist < min_dist * min_dist){
                 const float dist = sqrt(pre_dist);
                 const sf::Vector2f n = v / dist;
-                const float mass_ratio_1 = particle_1.radius / (particle_1.radius + particle_2.radius);
-                const float mass_ratio_2 = particle_2.radius / (particle_1.radius + particle_2.radius); 
+                const float mass_ratio_1 = 2 * particle_1.radius / (particle_1.radius + particle_2.radius);
+                const float mass_ratio_2 = 2 * particle_2.radius / (particle_1.radius + particle_2.radius); 
                 const float delta = 0.5f * response_coef * (dist - min_dist);
-
                 particle_1.position -= n * (mass_ratio_2 * delta); 
                 particle_2.position += n * (mass_ratio_1 * delta); 
             }
@@ -69,12 +66,11 @@ void Engine::checkCollisions() {
 
 //new recursive formula for collisions inside quad trees 
 void Engine::applyCollisions(Node &root) {
-    std::vector<Node*> childrens = root.getChildren();
+    std::vector<Node*> children = root.getChildren();
     root.box.resolveCollisions();
     //to do: resolve moving particles beetwen quadtrees and their decomposition
-    for(auto &node: childrens) {
+    for(auto &node : children) {
         Engine::applyCollisions(*node);
-    
     }
 }
 
@@ -90,6 +86,16 @@ void Engine::applyBoundary(float sub_step_dt) {
             particle.setVelocity(2.0f * (vel.x * perp.x + vel.y * perp.y) * perp - vel, 1.0f);
         }
     }
+}
+
+void Engine::updateSpatialLookup() {
+    for(auto &particle: particles) {
+
+    }
+}
+
+int positionToBox(sf::Vector2f position) {
+
 }
 
 float Engine::getTime() const
@@ -114,6 +120,10 @@ void Engine::setSubStepCount(uint32_t steps)
 
 sf::Vector3f Engine::getBoundary() const {
     return {boundary_center.x, boundary_center.y, boundary_radius};
+}
+
+Node* Engine::getQuadTree() {
+    return root;
 }
 
 void Engine::applyGravity() {

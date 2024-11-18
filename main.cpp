@@ -61,7 +61,7 @@ int main()
 
         engine.update();
         window.clear(sf::Color::White);
-        renderer.render(engine);
+        renderer.render(engine, false);
         window.display();
     }  
     return 0;

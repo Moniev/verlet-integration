@@ -5,7 +5,6 @@
 #include "node.hpp"
 
 class Engine {
-    
     public:
         float m_time = 0;
         float m_frame_dt = 0;
@@ -29,6 +28,9 @@ class Engine {
         void setSimulationUpdateRate(uint32_t rate);
         void checkCollisions();
         void applyCollisions(Node &root);
+        void updateSpatialLookup();
+        int positionToBox(sf::Vector2f position);
+        Node* getQuadTree();
 
     private:
         sf::Vector2f gravity = {0.0f, 1000.0f};
@@ -36,6 +38,7 @@ class Engine {
         uint32_t sub_steps = 8;
         sf::Vector2f boundary_center = {420.0f, 420.0f};
         float boundary_radius = 100.0f;
+        Node *root;
         void applyGravity();
         void updateParticles(const float dt);
 };

@@ -14,6 +14,7 @@ class Box{
     public:
         std::vector<Particle*> particles;
         float left, bottom, width, height; 
+        
         Box() = default;
         Box(float left, float bottom, float width, float height) 
             : left(left)
@@ -32,6 +33,7 @@ class Box{
         const int inBox();
         const std::vector<Particle*>& getPartciles();
         const bool isParticleIn(Particle* particle);
+        void updateBox();
 };
 
 #endif
