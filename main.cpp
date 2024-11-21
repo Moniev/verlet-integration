@@ -23,12 +23,13 @@ int main()
     Renderer renderer{window};
     
     
-    Engine engine;
+    Engine engine(window_height, window_width);
     engine.setBoundary({window_width / 2, window_height / 2}, (window_width - 20.0f) / 2);
     engine.setSubStepCount(8);
     engine.setSimulationUpdateRate(frame_rate);
-    
-
+    engine.splitTree(engine.root);
+    Node *node = engine.root->children.back();
+    engine.splitTree(node);
 
     while(window.isOpen()) {
         sf::Event event{};
@@ -61,7 +62,7 @@ int main()
 
         engine.update();
         window.clear(sf::Color::White);
-        renderer.render(engine, false);
+        renderer.render(engine, true);
         window.display();
     }  
     return 0;

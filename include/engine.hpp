@@ -6,11 +6,19 @@
 
 class Engine {
     public:
+        const int32_t max_width;
+        const int32_t max_height;
         float m_time = 0;
         float m_frame_dt = 0;
-        Node root;
+        Box *box = new Box(0, 0, 1000, 1000); 
+        Node *root = new Node(box);
+        
 
         Engine() = default;
+        Engine(int32_t max_height, int32_t max_width) : 
+            max_height(max_height),
+            max_width(max_width)
+            {}
         Particle& addParticle(sf::Vector2f position, float radius, sf::Color color);
         std::vector<Particle>& getParticles();
         std::vector<Particle> particles;
@@ -38,13 +46,17 @@ class Engine {
         void resolveBoundaries(std::vector<Particle*> particles, float sub_step_dt);
         void resolveParticlesUpdates(std::vector<Particle*> particles, float dt);
         void updateTree(Node *node);
+        void setTreeDepth(int n);
+        void splitTree(Node *node);
+        void resolveBorderCollisions(Node *node);
+        bool windowFriction(Node *node);
+        
     private:
         sf::Vector2f gravity = {0.0f, 1000.0f};
         float step_dt = 1.0f / 60;
         uint32_t sub_steps = 8;
         sf::Vector2f boundary_center = {420.0f, 420.0f};
         float boundary_radius = 100.0f;
-        Node *root;
         void applyGravity();
         void updateParticles(const float dt);
 };

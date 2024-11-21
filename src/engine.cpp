@@ -1,17 +1,29 @@
 #include "engine.hpp"
 
+bool Engine::windowFriction(Node *node) {
+    Box *box = node->box;
+    return box->bottom == 0 
+    || box->left == 0
+    || box->getRight() == max_width
+    || box->getTop() == max_height;
+}
+
+
 Particle& Engine::addParticle(sf::Vector2f position, float radius, sf::Color color) {
     Particle new_particle = Particle(position, radius, color);
     return particles.emplace_back(new_particle); 
 }
 
-std::vector<Particle>& Engine::getParticles(){
+std::vector<Particle>& Engine::getParticles() {
     return particles;
 }
 
-void Engine::setSimulationUpdateRate(uint32_t rate)
-{
+void Engine::setSimulationUpdateRate(uint32_t rate) {
     m_frame_dt = 1.0f / static_cast<float>(rate);
+}
+
+void Engine::setTreeDepth(int n) {
+    root->max_depth = n;
 }
 
 void Engine::mousePull(sf::Vector2f position) {
@@ -33,7 +45,7 @@ void Engine::mousePush(sf::Vector2f position) {
 void Engine::update() {
     float sub_step_dt = step_dt / sub_steps;
     m_time += m_frame_dt; 
-    std::cout << m_time << std::endl;
+    // std::cout << m_time << std::endl;
     for(int i = 0; i < sub_steps; i++){
         applyGravity();
         applyBoundary(sub_step_dt);
@@ -46,11 +58,13 @@ void Engine::updateTree(Node *node) {
     if(node->isLeaf()) {
         float sub_step_dt = step_dt / sub_steps;
         m_time += m_frame_dt; 
-        std::vector<Particle*> particles = node->box.particles;
+        std::vector<Particle*> particles = node->box->particles;
         for(int i = 0; i < sub_steps; i++) {
             resolveGravity(particles);
             resolveCollisions(particles);
-            resolveBoundaries(particles, sub_step_dt);
+            if(windowFriction(node)) {
+                resolveBoundaries(particles, sub_step_dt);
+            }
             resolveParticlesUpdates(particles, sub_step_dt);
         }
         return;
@@ -104,11 +118,20 @@ void Engine::resolveCollisions(std::vector<Particle*> particles) {
     }
 }
 
+void Engine::resolveBorderCollisions(Node *node) {
+    //todo
+}
+
+
 //new recursive formula for collisions inside quad trees 
+//to do: FIND A SOLUTION FOR COLLISIONS BETWEEN NEIGHBOURING NODES
+//checking for every particle with every particle belonging to bordering nodes might be problematic, looking for next + O(log n)
+//each node till the second/third(didn't decided yet) depth level should be separate thread in near future:
+
 void Engine::applyCollisions(Node *node) {
     std::vector<Node*> children = node->getChildren();
-    Box box = node->box;
-    std::vector<Particle*> particles = box.particles;
+    Box *box = node->box;
+    std::vector<Particle*> particles = box->particles;
     if(node->isLeaf()) {
         resolveCollisions(particles);
     }
@@ -134,18 +157,18 @@ void Engine::applyBoundary(float sub_step_dt) {
 bool Engine::particleBelong(Particle *particle, Node *node) {
     float x = particle->position.x;
     float y = particle->position.y;
-    Box box = node->box;
+    Box *box = node->box;
 
-    return x >= box.left
-        && x <= box.getRight()
-        && y <= box.getTop()
-        && y >= box.bottom;
+    return x >= box->left
+        && x <= box->getRight()
+        && y <= box->getTop()
+        && y >= box->bottom;
 }
 
 void Engine::findNewNode(Particle *particle, Node *node) {
     if(particleBelong(particle, node)) {
         if(node->isLeaf()) {
-            node->box.addParticle(particle);
+            node->box->addParticle(particle);
             return;
         }
 
@@ -157,16 +180,37 @@ void Engine::findNewNode(Particle *particle, Node *node) {
 }
 
 void Engine::updateSpatialLookup(Node *node) {
-    std::vector<Particle*> particles = node->box.particles;
-    for(auto &particle: particles) {
+    std::vector<Particle*> particles = node->box->particles;
+    for(auto &particle : particles) {
         if(!particleBelong(particle, node)) {
             findNewNode(particle, root);
-            node->box.removeParticle(particle);
+            node->box->removeParticle(particle);
         }
     }
 
     for(auto &__children : node->children) {
         updateSpatialLookup(__children);
+    }
+}
+
+void Engine::splitTree(Node *node) {
+    Box *box = node->box;
+    float quarter = box->height / 2; 
+    float half_width = box->width / 2;
+    Box *sub_box__1 = new Box(box->getRight() - half_width, box->bottom + half_width, quarter, quarter);
+    Box *sub_box__2 = new Box(box->left, box->getTop()-half_width, quarter, quarter);
+    Box *sub_box__3 = new Box(box->left, box->bottom, quarter, quarter);
+    Box *sub_box__4 = new Box(box->getRight() - half_width, box->bottom, quarter, quarter);
+    Node *node__1 = new Node(sub_box__1);
+    Node *node__2 = new Node(sub_box__2);
+    Node *node__3 = new Node(sub_box__3);
+    Node *node__4 = new Node(sub_box__4); 
+    node->addNode(node__1);
+    node->addNode(node__2);
+    node->addNode(node__3);
+    node->addNode(node__4);
+    for(auto particle : box->particles) {
+        findNewNode(particle, root);
     }
 }
 

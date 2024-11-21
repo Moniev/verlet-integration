@@ -7,9 +7,9 @@ void Node::addNode(Node *node) {
     }
 }
 
-void Node::deleteNode(int i) {
-    children.erase(children.begin() + i);
-}
+void Node::removeNode(Node *node) {
+    children.erase(find(children.begin(), children.end(), node));
+} 
 
 const std::vector<Node*> Node::getChildren() {
     return children;
@@ -19,6 +19,3 @@ bool Node::isLeaf() {
     return children.empty();
 }
 
-const Box Node::getBox() {
-    return box;
-}

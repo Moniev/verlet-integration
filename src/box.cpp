@@ -8,6 +8,18 @@ const float Box::getTop() {
     return Box::bottom + Box::height;
 }
 
+const sf::Vector2f Box::getLeftBottom() {
+    return {left, bottom};
+}
+
+const sf::Vector2f Box::getLeftTop() {
+    return {left, getTop()};
+}
+
+const std::vector<Particle*>& Box::getParticles() {
+    return particles;
+}
+
 const sf::Vector2f Box::getCenter() {
     return sf::Vector2f{left + width / 2, bottom + height/2};
 }

@@ -5,42 +5,23 @@
 
 
 class Node{
-    static int i;
-
     public:
-        int idx;
-        Box box;
+        int current_depth;
+        int max_depth;
+        Box *box;
         Node *root;
         std::vector<Node*> children;
 
         Node() = default;
-        Node(Box __box) 
+        Node(Box *__box) 
             : box(__box) {
-            i++;
-            idx = i;
-        }
-        ~Node() {
-            i--;
-        }
-        void addNode(Node *node) {
-            if(children.size() < 4) {
-                node->root = this;
-                children.push_back(node);
-            }
-        };
-
-        void deleteNode(int i) {
-            children.erase(children.begin() + i);
         }
 
-        const std::vector<Node*> getChildren() {
-            return children;
-        }
+        void addNode(Node *node);
+        const std::vector<Node*> getChildren();
         bool isLeaf();
-
-        void updateParticles();
-
-        const Box getBox();
+        void splitTree();
+        void removeNode(Node* node);
 };
 
 #endif 
