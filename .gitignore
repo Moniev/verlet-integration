@@ -100,3 +100,4 @@ CMakeUserPresets.json
 
 # Ninja files
 .ninja
+build.ninja

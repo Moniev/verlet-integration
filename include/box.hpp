@@ -29,11 +29,12 @@ class Box{
         const sf::Vector2f getSize();
         const bool contains(Box &box);
         const bool intersects(Box &box);
-        void resolveCollisions();
         const int inBox();
-        const std::vector<Particle*>& getPartciles();
-        const bool isParticleIn(Particle* particle);
-        void updateBox();
+        std::vector<Particle*> getParticles();
+        const bool isParticleIn(Particle *particle);
+        const bool particleBelong(Particle *particle);
+        void addParticle(Particle *particle);
+        void removeParticle(Particle *particle);
 };
 
 #endif

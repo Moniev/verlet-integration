@@ -42,6 +42,24 @@ void Engine::update() {
     }
 }
 
+void Engine::updateTree(Node *node) {
+    if(node->isLeaf()) {
+        float sub_step_dt = step_dt / sub_steps;
+        m_time += m_frame_dt; 
+        std::vector<Particle*> particles = node->box.particles;
+        for(int i = 0; i < sub_steps; i++) {
+            resolveGravity(particles);
+            resolveCollisions(particles);
+            resolveBoundaries(particles, sub_step_dt);
+            resolveParticlesUpdates(particles, sub_step_dt);
+        }
+        return;
+    }
+    for(auto &__children : node->children) {
+        updateTree(__children);
+    }
+}
+
 void Engine::checkCollisions() {
     const float response_coef = 0.75f;
     for(int i = 0; i < particles.size(); i++){
@@ -64,13 +82,38 @@ void Engine::checkCollisions() {
     }
 }
 
+void Engine::resolveCollisions(std::vector<Particle*> particles) {
+    const float response_coef = 0.75f;
+    for(auto &particle__i : particles) {
+        for(auto &particle__j : particles) {
+            if(particle__i != particle__j) {
+                const sf::Vector2f v = particle__i->position - particle__j->position;
+                const float pre_dist = v.x * v.x + v.y * v.y;
+                const float min_dist = particle__i->radius + particle__j->radius;
+                if(pre_dist < min_dist * min_dist) {
+                    const float dist = sqrt(pre_dist);
+                    const sf::Vector2f n = v / dist;
+                    const float mass_ratio_1 = 2 * particle__i->radius / (particle__i->radius + particle__j->radius);
+                    const float mass_ratio_2 = 2 * particle__j->radius / (particle__i->radius + particle__j->radius); 
+                    const float delta = 0.5f * response_coef * (dist - min_dist);
+                    particle__i->position -= n * (mass_ratio_2 * delta); 
+                    particle__j->position += n * (mass_ratio_1 * delta); 
+                }
+            }
+        }
+    }
+}
+
 //new recursive formula for collisions inside quad trees 
-void Engine::applyCollisions(Node &root) {
-    std::vector<Node*> children = root.getChildren();
-    root.box.resolveCollisions();
-    //to do: resolve moving particles beetwen quadtrees and their decomposition
-    for(auto &node : children) {
-        Engine::applyCollisions(*node);
+void Engine::applyCollisions(Node *node) {
+    std::vector<Node*> children = node->getChildren();
+    Box box = node->box;
+    std::vector<Particle*> particles = box.particles;
+    if(node->isLeaf()) {
+        resolveCollisions(particles);
+    }
+    for(auto &__children : children) {
+        applyCollisions(__children);
     }
 }
 
@@ -88,23 +131,50 @@ void Engine::applyBoundary(float sub_step_dt) {
     }
 }
 
-void Engine::updateSpatialLookup() {
-    for(auto &particle: particles) {
+bool Engine::particleBelong(Particle *particle, Node *node) {
+    float x = particle->position.x;
+    float y = particle->position.y;
+    Box box = node->box;
 
+    return x >= box.left
+        && x <= box.getRight()
+        && y <= box.getTop()
+        && y >= box.bottom;
+}
+
+void Engine::findNewNode(Particle *particle, Node *node) {
+    if(particleBelong(particle, node)) {
+        if(node->isLeaf()) {
+            node->box.addParticle(particle);
+            return;
+        }
+
+        for(auto &__children : node->children) {
+            findNewNode(particle, __children);
+        }
+    }
+    return;
+}
+
+void Engine::updateSpatialLookup(Node *node) {
+    std::vector<Particle*> particles = node->box.particles;
+    for(auto &particle: particles) {
+        if(!particleBelong(particle, node)) {
+            findNewNode(particle, root);
+            node->box.removeParticle(particle);
+        }
+    }
+
+    for(auto &__children : node->children) {
+        updateSpatialLookup(__children);
     }
 }
 
-int positionToBox(sf::Vector2f position) {
-
-}
-
-float Engine::getTime() const
-{
+float Engine::getTime() const {
     return m_time;
 }
 
-void Engine::setParticleVelocity(Particle &particle, sf::Vector2f v)
-{
+void Engine::setParticleVelocity(Particle &particle, sf::Vector2f v) {
     particle.setVelocity(v, step_dt);
 }
 
@@ -113,8 +183,7 @@ void Engine::setBoundary(sf::Vector2f position, float radius) {
     boundary_radius = radius;
 }
 
-void Engine::setSubStepCount(uint32_t steps)
-{
+void Engine::setSubStepCount(uint32_t steps) {
     sub_steps = steps;
 }
 
@@ -135,5 +204,31 @@ void Engine::applyGravity() {
 void Engine::updateParticles(float dt) {
     for(auto &particle: particles) {
         particle.update(dt);
+    }
+}
+
+void Engine::resolveBoundaries(std::vector<Particle*> particles, float sub_step_dt) {
+    for(auto &particle : particles) {
+        const sf::Vector2f r = boundary_center - particle->position;
+        const float dist = sqrt(r.x * r.x + r.y * r.y);
+        if(dist > boundary_radius - particle->radius) {
+            const sf::Vector2f n = r / dist;
+            const sf::Vector2f perp = {-n.y, n.x};
+            const sf::Vector2f vel = particle->getVelocity(sub_step_dt);
+            particle->position = boundary_center - n * (boundary_radius - particle->radius);
+            particle->setVelocity(2.0f * (vel.x * perp.x + vel.y * perp.y) * perp - vel, 1.0f);
+        }
+    }
+}
+
+void Engine::resolveGravity(std::vector<Particle*> particles) {
+    for(auto &particle : particles) {
+        particle->accelerate(gravity);
+    }
+}
+
+void Engine::resolveParticlesUpdates(std::vector<Particle*> particles, float dt) {
+    for(auto &particle : particles) {
+        particle->update(dt);
     }
 }

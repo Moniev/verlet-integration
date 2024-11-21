@@ -27,11 +27,17 @@ class Engine {
         void setParticleVelocity(Particle &particle, sf::Vector2f v);
         void setSimulationUpdateRate(uint32_t rate);
         void checkCollisions();
-        void applyCollisions(Node &root);
-        void updateSpatialLookup();
+        void resolveCollisions(std::vector<Particle*> particles);
+        void applyCollisions(Node *node);
+        void updateSpatialLookup(Node *node);
         int positionToBox(sf::Vector2f position);
+        bool particleBelong(Particle *particle, Node *node);
+        void findNewNode(Particle *particle, Node *node);
         Node* getQuadTree();
-
+        void resolveGravity(std::vector<Particle*> particles);
+        void resolveBoundaries(std::vector<Particle*> particles, float sub_step_dt);
+        void resolveParticlesUpdates(std::vector<Particle*> particles, float dt);
+        void updateTree(Node *node);
     private:
         sf::Vector2f gravity = {0.0f, 1000.0f};
         float step_dt = 1.0f / 60;

@@ -36,6 +36,7 @@ class Node{
         const std::vector<Node*> getChildren() {
             return children;
         }
+        bool isLeaf();
 
         void updateParticles();
 

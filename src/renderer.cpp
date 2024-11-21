@@ -1,8 +1,7 @@
 #include "renderer.hpp"
 
 
-void Renderer::render(Engine &engine, bool debug)
-{
+void Renderer::render(Engine &engine, bool debug) {
     //boundaries
     sf::CircleShape circle{1.0f};
     circle.setPointCount(32);
@@ -14,6 +13,12 @@ void Renderer::render(Engine &engine, bool debug)
     boundary_background.setPointCount(1280);
     window.draw(boundary_background);
     
+    if(debug) {
+        Node *root = engine.getQuadTree();
+        Renderer::renderQuadTree(root);
+
+    }
+
     const auto particles = engine.getParticles();
     for(const auto &particle : particles)
     {
@@ -22,11 +27,6 @@ void Renderer::render(Engine &engine, bool debug)
         circle.setScale(particle.radius, particle.radius);
         circle.setFillColor(particle.color);
         window.draw(circle);
-    }
-
-    if(debug) {
-        Node *root = engine.getQuadTree();
-        Renderer::renderQuadTree(root);
     }
 }
 
@@ -42,5 +42,12 @@ void Renderer::renderQuadTree(Node *node) {
         square.setFillColor(sf::Color::Black);
         window.draw(square);
         Renderer::renderQuadTree(__children);
+    }
+}
+
+void Renderer::renderParticles(Node *node) {
+    Box box = node->box;
+    for(const auto &particle : box.particles) {
+        
     }
 }

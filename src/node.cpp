@@ -15,8 +15,8 @@ const std::vector<Node*> Node::getChildren() {
     return children;
 }
 
-void Node::updateParticles() {
-    
+bool Node::isLeaf() {
+    return children.empty();
 }
 
 const Box Node::getBox() {
