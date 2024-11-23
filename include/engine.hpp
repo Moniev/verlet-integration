@@ -21,8 +21,8 @@ class Engine {
                 this->root = new Node(box); 
             }
         Particle* addParticle(sf::Vector2f position, float radius, sf::Color color);
-        std::vector<Particle>& getParticles();
-        std::vector<Particle> particles;
+        std::vector<Particle*>& getParticles();
+        std::vector<Particle*> particles;
         void update();
         void resolveGravity();
         void setSubStepCount(uint32_t steps);

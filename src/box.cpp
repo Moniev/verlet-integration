@@ -33,7 +33,7 @@ const sf::Vector2f Box::getSize() {
 const bool Box::contains(Box &box) {
     return left <= box.left 
     && box.getRight() <= getRight() 
-    && Box::getTop() <= box.getTop()
+    && getTop() <= box.getTop()
     && bottom <= box.bottom;
 }
 

@@ -12,7 +12,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode(window_width, window_height), "Verlet integration", sf::Style::Default, settings);
     
     constexpr int32_t frame_rate = 60; 
-    constexpr int32_t max_particles = 100;
+    constexpr int32_t max_particles = 1000;
     int particles = 0;
     float spawn_delay = 0.05f;
     const float max_angle = 1.0f;
@@ -22,7 +22,6 @@ int main()
 
     window.setFramerateLimit(frame_rate);
     Renderer renderer{window};
-    
     
     Engine engine(window_height, window_width);
     engine.setBoundary({window_width / 2, window_height / 2}, (window_width - 20.0f) / 2);
@@ -44,7 +43,6 @@ int main()
             engine.mousePull(position, engine.root);
         }   
 
-
         if(sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
             float ratio = 840.0f / window.getSize().x;
             sf::Vector2f position = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) * ratio;
@@ -56,15 +54,14 @@ int main()
             const float time = engine.getTime();
             const float angle = max_angle * sin(time) + PI * 0.5f;
             auto *particle = engine.addParticle(spawn_position, 10.f, sf::Color::Magenta);
+            
             particles++;
             engine.setParticleVelocity(particle, 12.0f * sf::Vector2f{cos(angle), sin(angle)});
         }
 
-        engine.updateTree(engine.root);
+        engine.update();
         window.clear(sf::Color::White);
-        renderer.renderBoundaries(engine);
-        renderer.renderQuadTree(engine.root);
-        renderer.renderParticles(engine.root);
+        renderer.render(engine, true);
         window.display();
     }  
     return 0;

@@ -17,7 +17,6 @@ class Renderer {
     
         void render(Engine &engine, bool debug);
         void renderSpace();
-        void renderParticles(Node *node);
         void renderQuadTree(Node *node);
         void renderBoundaries(Engine &engine);
 };

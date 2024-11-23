@@ -19,45 +19,28 @@ void Renderer::render(Engine &engine, bool debug) {
 
     const auto particles = engine.getParticles();
     for(const auto &particle : particles) {
-        circle.setPosition(particle.position);
-        circle.setScale(particle.radius, particle.radius);
-        circle.setFillColor(particle.color);
+        circle.setPosition(particle->position);
+        circle.setScale(particle->radius, particle->radius);
+        circle.setFillColor(particle->color);
         window.draw(circle);
     }
 }
 
 void Renderer::renderQuadTree(Node *node) {
-    Box *__box = node->box;
-    sf::Vector2f position = __box->getLeftBottom();
-    sf::Vector2f size = __box->getSize();
+    Box *box = node->box;
+    sf::Vector2f position = box->getLeftBottom();
+    sf::Vector2f size = box->getSize();
     sf::RectangleShape square(size);
+
     square.setPosition(position);
     square.setOutlineColor(sf::Color::Green);
     square.setOutlineThickness(2);
     square.setFillColor(sf::Color::Transparent);
     window.draw(square);
-    for(auto &__children : node->getChildren()) {
+
+    std::vector<Node*> children = node->getChildren(); 
+    for(auto &__children : children) {
         renderQuadTree(__children);
-    }
-}
-
-void Renderer::renderParticles(Node *node) {
-    sf::CircleShape circle{1.0f};
-    circle.setPointCount(32);
-    if(node->isLeaf()) {
-        Box *box = node->box;
-        std::vector<Particle*> particles = box->particles;
-        for(auto &particle : particles) {
-            circle.setPosition(particle->position);
-            circle.setScale(particle->radius, particle->radius);
-            circle.setFillColor(particle->color);
-            window.draw(circle);
-        }
-        return;
-    }
-
-    for(auto &__children : node->children) {
-        renderParticles(__children);
     }
 }
 
