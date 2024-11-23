@@ -1,13 +1,6 @@
 #ifndef BOX_HPP
 #define BOX_HPP
 
-
-#pragma once
-#include <SFML/Graphics.hpp>
-#include <algorithm>
-#include <memory>
-#include <type_traits>
-#include <iostream>
 #include "particle.hpp"
 
 class Box{

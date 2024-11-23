@@ -13,15 +13,14 @@ class Node{
         std::vector<Node*> children;
 
         Node() = default;
-        Node(Box *__box) 
-            : box(__box) {
+        Node(Box *__box) {
+            this->box = __box;
         }
 
         void addNode(Node *node);
         const std::vector<Node*> getChildren();
         bool isLeaf();
-        void splitTree();
-        void removeNode(Node* node);
+        void removeNode(Node *node);
 };
 
 #endif 

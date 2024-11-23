@@ -4,6 +4,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <cmath>
+#include <algorithm>
+#include <memory>
+#include <type_traits>
 #include <iostream>
 
 class Particle {
@@ -27,6 +30,7 @@ class Particle {
         void accelerate(sf::Vector2f a);
         void addVelocty(sf::Vector2f v, float dt);
         void setVelocity(sf::Vector2f v, float dt);
+        sf::Vector2f getPosition();
         sf::Vector2f getVelocity(float dt);
         
         void update(float dt);

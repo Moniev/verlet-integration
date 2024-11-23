@@ -16,6 +16,7 @@ const std::vector<Node*> Node::getChildren() {
 }
 
 bool Node::isLeaf() {
+    std::cout << "isLeaf" << std::endl;
     return children.empty();
 }
 

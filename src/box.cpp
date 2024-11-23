@@ -1,11 +1,13 @@
 #include "box.hpp"
 
 const float Box::getRight() {
-    return Box::left + Box::width;
+    std::cout << "getRight" << std::endl;
+    return left + width;
 }   
 
 const float Box::getTop() {
-    return Box::bottom + Box::height;
+    std::cout << "getTop" << std::endl;
+    return bottom + height;
 }
 
 const sf::Vector2f Box::getLeftBottom() {
@@ -43,7 +45,7 @@ const bool Box::intersects(Box &box) {
 }
 
 const bool Box::isParticleIn(Particle *particle) {
-    for(const auto &particle__i : Box::particles) {
+    for(const auto &particle__i : particles) {
         if(particle__i == particle) {
             return true;
         }
@@ -52,9 +54,10 @@ const bool Box::isParticleIn(Particle *particle) {
 }
 
 void Box::addParticle(Particle *particle) {
-    Box::particles.emplace_back(particle);
+    std::cout << "addParticle" << std::endl;
+    particles.emplace_back(particle);
 }
 
 void Box::removeParticle(Particle *particle) {
-    Box::particles.erase(find(particles.begin(), particles.end(), particle));
+    particles.erase(find(particles.begin(), particles.end(), particle));
 }

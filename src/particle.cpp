@@ -16,6 +16,10 @@ sf::Vector2f Particle::getVelocity(float dt) {
     return (position - last_position);
 } 
 
+sf::Vector2f Particle::getPosition() {
+    return position;
+}
+
 void Particle::update(float dt) {
     sf::Vector2f displacement = position - last_position;
     last_position = position;

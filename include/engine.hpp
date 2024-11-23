@@ -10,16 +10,17 @@ class Engine {
         const int32_t max_height;
         float m_time = 0;
         float m_frame_dt = 0;
-        Box *box = new Box(0, 0, 1000, 1000); 
-        Node *root = new Node(box);
-        
+        Box *box;
+        Node *root;
 
         Engine() = default;
         Engine(int32_t max_height, int32_t max_width) : 
             max_height(max_height),
-            max_width(max_width)
-            {}
-        Particle& addParticle(sf::Vector2f position, float radius, sf::Color color);
+            max_width(max_width) {
+                this->box = new Box(0, 0, 1000, 1000);
+                this->root = new Node(box); 
+            }
+        Particle* addParticle(sf::Vector2f position, float radius, sf::Color color);
         std::vector<Particle>& getParticles();
         std::vector<Particle> particles;
         void update();
@@ -30,9 +31,9 @@ class Engine {
         sf::Vector3f getBoundary() const;
         void applyBoundary(float substep_dt);
         void updateObjects(const float dt);
-        void mousePull(sf::Vector2f position);
-        void mousePush(sf::Vector2f position);
-        void setParticleVelocity(Particle &particle, sf::Vector2f v);
+        void mousePull(sf::Vector2f position, Node *node);
+        void mousePush(sf::Vector2f position, Node *node);
+        void setParticleVelocity(Particle *particle, sf::Vector2f v);
         void setSimulationUpdateRate(uint32_t rate);
         void checkCollisions();
         void resolveCollisions(std::vector<Particle*> particles);

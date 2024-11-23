@@ -36,8 +36,7 @@ void Renderer::renderQuadTree(Node *node) {
     square.setOutlineThickness(2);
     square.setFillColor(sf::Color::Transparent);
     window.draw(square);
-
-    for(const auto &__children : node->getChildren()) {
+    for(auto &__children : node->getChildren()) {
         renderQuadTree(__children);
     }
 }
@@ -46,7 +45,9 @@ void Renderer::renderParticles(Node *node) {
     sf::CircleShape circle{1.0f};
     circle.setPointCount(32);
     if(node->isLeaf()) {
-        for(const auto &particle : node->box->getParticles()) {
+        Box *box = node->box;
+        std::vector<Particle*> particles = box->particles;
+        for(auto &particle : particles) {
             circle.setPosition(particle->position);
             circle.setScale(particle->radius, particle->radius);
             circle.setFillColor(particle->color);

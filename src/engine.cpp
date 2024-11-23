@@ -9,9 +9,10 @@ bool Engine::windowFriction(Node *node) {
 }
 
 
-Particle& Engine::addParticle(sf::Vector2f position, float radius, sf::Color color) {
-    Particle new_particle = Particle(position, radius, color);
-    return particles.emplace_back(new_particle); 
+Particle* Engine::addParticle(sf::Vector2f position, float radius, sf::Color color) {
+    Particle *new_particle = new Particle(position, radius, color);
+    findNewNode(new_particle, root);
+    return new_particle;
 }
 
 std::vector<Particle>& Engine::getParticles() {
@@ -26,27 +27,39 @@ void Engine::setTreeDepth(int n) {
     root->max_depth = n;
 }
 
-void Engine::mousePull(sf::Vector2f position) {
+void Engine::mousePull(sf::Vector2f position, Node *node) {
+    Box *box = node->box;
+    std::vector<Particle*> particles = box->particles;
+    
     for(auto &particle : particles) {
-        sf::Vector2f dir = position - particle.position;
+        sf::Vector2f dir = position - particle->position;
         float dist = sqrt(dir.x * dir.x + dir.y * dir.y);
-        particle.accelerate(dir*std::max(0.0f, 10 * (120-dist)));
+        particle->accelerate(dir*std::max(0.0f, 10 * (120-dist)));
+    }
+    for(auto &__children : node->children) {
+        mousePull(position, __children);
     }
 }
 
-void Engine::mousePush(sf::Vector2f position) {
+void Engine::mousePush(sf::Vector2f position, Node *node) {
+    Box *box = node->box;
+    std::vector<Particle*> particles = box->particles;
+
     for(auto &particle : particles) {
-        sf::Vector2f dir = position - particle.position;
+        sf::Vector2f dir = position - particle->position;
         float dist = sqrt(dir.x * dir.x + dir.y * dir.y);
-        particle.accelerate(dir*std::max(0.0f, -10 * (120-dist)));
+        particle->accelerate(dir*std::max(0.0f, -10 * (120-dist)));
+    }
+
+    for(auto &__children : node->children) {
+        mousePush(position, __children);
     }
 }
 
 void Engine::update() {
     float sub_step_dt = step_dt / sub_steps;
     m_time += m_frame_dt; 
-    // std::cout << m_time << std::endl;
-    for(int i = 0; i < sub_steps; i++){
+    for(int i = 0; i < sub_steps; i++) {
         applyGravity();
         applyBoundary(sub_step_dt);
         checkCollisions();
@@ -66,8 +79,12 @@ void Engine::updateTree(Node *node) {
                 resolveBoundaries(particles, sub_step_dt);
             }
             resolveParticlesUpdates(particles, sub_step_dt);
+            updateSpatialLookup(node);
         }
-        return;
+
+        if(particles.size() >= 100 && node->isLeaf()) {
+            splitTree(node);
+        }
     }
     for(auto &__children : node->children) {
         updateTree(__children);
@@ -155,10 +172,11 @@ void Engine::applyBoundary(float sub_step_dt) {
 }
 
 bool Engine::particleBelong(Particle *particle, Node *node) {
-    float x = particle->position.x;
-    float y = particle->position.y;
+    std::cout << "particleBelong" << std::endl;
+    sf::Vector2f position = particle->getPosition();
+    float y = position.y;
+    float x = position.x;
     Box *box = node->box;
-
     return x >= box->left
         && x <= box->getRight()
         && y <= box->getTop()
@@ -166,9 +184,11 @@ bool Engine::particleBelong(Particle *particle, Node *node) {
 }
 
 void Engine::findNewNode(Particle *particle, Node *node) {
+    std::cout << "findNewNode" << std::endl;
     if(particleBelong(particle, node)) {
         if(node->isLeaf()) {
-            node->box->addParticle(particle);
+            Box *box = node->box;
+            box->addParticle(particle);
             return;
         }
 
@@ -176,15 +196,16 @@ void Engine::findNewNode(Particle *particle, Node *node) {
             findNewNode(particle, __children);
         }
     }
-    return;
 }
 
 void Engine::updateSpatialLookup(Node *node) {
-    std::vector<Particle*> particles = node->box->particles;
+    std::cout << "updateSpatialLookup" << std::endl;
+    Box *box = node->box;
+    std::vector<Particle*> particles = box->particles;
     for(auto &particle : particles) {
         if(!particleBelong(particle, node)) {
             findNewNode(particle, root);
-            node->box->removeParticle(particle);
+            box->removeParticle(particle);
         }
     }
 
@@ -194,7 +215,9 @@ void Engine::updateSpatialLookup(Node *node) {
 }
 
 void Engine::splitTree(Node *node) {
+    std::cout << "splitTree" << std::endl;
     Box *box = node->box;
+    std::vector<Particle*> particles = box->particles;
     float quarter = box->height / 2; 
     float half_width = box->width / 2;
     Box *sub_box__1 = new Box(box->getRight() - half_width, box->bottom + half_width, quarter, quarter);
@@ -209,7 +232,8 @@ void Engine::splitTree(Node *node) {
     node->addNode(node__2);
     node->addNode(node__3);
     node->addNode(node__4);
-    for(auto particle : box->particles) {
+
+    for(auto &particle : box->particles) {
         findNewNode(particle, root);
     }
 }
@@ -218,8 +242,8 @@ float Engine::getTime() const {
     return m_time;
 }
 
-void Engine::setParticleVelocity(Particle &particle, sf::Vector2f v) {
-    particle.setVelocity(v, step_dt);
+void Engine::setParticleVelocity(Particle *particle, sf::Vector2f v) {
+    particle->setVelocity(v, step_dt);
 }
 
 void Engine::setBoundary(sf::Vector2f position, float radius) {

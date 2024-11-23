@@ -12,7 +12,8 @@ int main()
     sf::RenderWindow window(sf::VideoMode(window_width, window_height), "Verlet integration", sf::Style::Default, settings);
     
     constexpr int32_t frame_rate = 60; 
-    constexpr int32_t max_particles = 1000;
+    constexpr int32_t max_particles = 100;
+    int particles = 0;
     float spawn_delay = 0.05f;
     const float max_angle = 1.0f;
     static constexpr float PI = 3.1415936f;
@@ -27,9 +28,7 @@ int main()
     engine.setBoundary({window_width / 2, window_height / 2}, (window_width - 20.0f) / 2);
     engine.setSubStepCount(8);
     engine.setSimulationUpdateRate(frame_rate);
-    engine.splitTree(engine.root);
-    Node *node = engine.root->children.back();
-    engine.splitTree(node);
+
 
     while(window.isOpen()) {
         sf::Event event{};
@@ -42,27 +41,30 @@ int main()
         if(sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             float ratio = 840.0f / window.getSize().x;
             sf::Vector2f position = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) * ratio;
-            engine.mousePull(position);
+            engine.mousePull(position, engine.root);
         }   
 
 
         if(sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
             float ratio = 840.0f / window.getSize().x;
             sf::Vector2f position = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) * ratio;
-            engine.mousePush(position);
+            engine.mousePush(position, engine.root);
         }
 
-        if(engine.getParticles().size() < max_particles && clock.getElapsedTime().asSeconds() >= spawn_delay) {
+        if(particles < max_particles && clock.getElapsedTime().asSeconds() >= spawn_delay) {
             clock.restart();
             const float time = engine.getTime();
             const float angle = max_angle * sin(time) + PI * 0.5f;
-            auto &particle = engine.addParticle(spawn_position, 10.f, sf::Color::Magenta);
+            auto *particle = engine.addParticle(spawn_position, 10.f, sf::Color::Magenta);
+            particles++;
             engine.setParticleVelocity(particle, 12.0f * sf::Vector2f{cos(angle), sin(angle)});
         }
 
-        engine.update();
+        engine.updateTree(engine.root);
         window.clear(sf::Color::White);
-        renderer.render(engine, true);
+        renderer.renderBoundaries(engine);
+        renderer.renderQuadTree(engine.root);
+        renderer.renderParticles(engine.root);
         window.display();
     }  
     return 0;
