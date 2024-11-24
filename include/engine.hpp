@@ -20,6 +20,7 @@ class Engine {
                 this->box = new Box(0, 0, 1000, 1000);
                 this->root = new Node(box); 
             }
+            
         Particle* addParticle(sf::Vector2f position, float radius, sf::Color color);
         std::vector<Particle*>& getParticles();
         std::vector<Particle*> particles;
@@ -36,7 +37,7 @@ class Engine {
         void setParticleVelocity(Particle *particle, sf::Vector2f v);
         void setSimulationUpdateRate(uint32_t rate);
         void checkCollisions();
-        void resolveCollisions(std::vector<Particle*> particles);
+        void resolveCollisions(Box *box);
         void applyCollisions(Node *node);
         void updateSpatialLookup(Node *node);
         int positionToBox(sf::Vector2f position);
@@ -46,9 +47,11 @@ class Engine {
         void resolveGravity(std::vector<Particle*> particles);
         void resolveBoundaries(std::vector<Particle*> particles, float sub_step_dt);
         void resolveParticlesUpdates(std::vector<Particle*> particles, float dt);
+        void __resolveCollisions(std::vector<Particle*> particles);
         void updateTree(Node *node);
         void setTreeDepth(int n);
         void splitTree(Node *node);
+        void mergeTrees(Node *node);
         void resolveBorderCollisions(Node *node);
         bool windowFriction(Node *node);
         

@@ -25,14 +25,13 @@ class Particle {
             , last_position(__position)
             , radius(__radius)
             , color(__color)
-        {}
+            {}
 
         void accelerate(sf::Vector2f a);
         void addVelocty(sf::Vector2f v, float dt);
         void setVelocity(sf::Vector2f v, float dt);
         sf::Vector2f getPosition();
         sf::Vector2f getVelocity(float dt);
-        
         void update(float dt);
 };
 

@@ -7,13 +7,12 @@
 
 class Renderer {
     public:
-        sf::RenderWindow& window;
-        std::vector<Particle> particles;
+        sf::RenderWindow &window;
 
         Renderer() = default;
-        Renderer(sf::RenderWindow& __window)
+        Renderer(sf::RenderWindow &__window)
             : window(__window)
-        {}
+            {}
     
         void render(Engine &engine, bool debug);
         void renderSpace();

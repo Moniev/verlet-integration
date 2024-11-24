@@ -12,7 +12,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode(window_width, window_height), "Verlet integration", sf::Style::Default, settings);
     
     constexpr int32_t frame_rate = 60; 
-    constexpr int32_t max_particles = 1000;
+    constexpr int32_t max_particles = 128;
     int particles = 0;
     float spawn_delay = 0.05f;
     const float max_angle = 1.0f;

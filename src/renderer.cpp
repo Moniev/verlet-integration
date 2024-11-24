@@ -12,7 +12,6 @@ void Renderer::render(Engine &engine, bool debug) {
     boundary_background.setPointCount(1280);
     window.draw(boundary_background);
 
-    sf::RectangleShape sth({100, 100});
     if(debug) {
         renderQuadTree(engine.root);
     }
@@ -28,8 +27,8 @@ void Renderer::render(Engine &engine, bool debug) {
 
 void Renderer::renderQuadTree(Node *node) {
     Box *box = node->box;
-    sf::Vector2f position = box->getLeftBottom();
-    sf::Vector2f size = box->getSize();
+    const sf::Vector2f position = box->getLeftBottom();
+    const sf::Vector2f size = box->getSize();
     sf::RectangleShape square(size);
 
     square.setPosition(position);

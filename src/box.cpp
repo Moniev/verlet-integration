@@ -1,12 +1,16 @@
 #include "box.hpp"
 
+
+
+const int Box::countParticles() {
+    return particles.size();
+}
+
 const float Box::getRight() {
-    std::cout << "getRight" << std::endl;
     return left + width;
 }   
 
 const float Box::getTop() {
-    std::cout << "getTop" << std::endl;
     return bottom + height;
 }
 
@@ -30,31 +34,26 @@ const sf::Vector2f Box::getSize() {
     return sf::Vector2f{width, height};
 }
 
-const bool Box::contains(Box &box) {
-    return left <= box.left 
-    && box.getRight() <= getRight() 
-    && getTop() <= box.getTop()
-    && bottom <= box.bottom;
+bool Box::isAdjacent(Box *box) {
+    bool is_vertically_adjacent = (getTop() == box->bottom || bottom == box->getTop());
+    bool is_horizontally_adjacent = (getRight() == box->left || left == box->getRight());
+    return is_horizontally_adjacent || is_vertically_adjacent;
 }
 
-const bool Box::intersects(Box &box) {
-    return !(left >= box.getRight() 
-    || Box::getRight() <= box.left 
-    || bottom >= box.getTop()
-    || Box::getTop() <= box.bottom);
+void Box::considerBorderCollisions(Particle *particle) {
+    border_particles.emplace_back(particle);
 }
 
-const bool Box::isParticleIn(Particle *particle) {
-    for(const auto &particle__i : particles) {
-        if(particle__i == particle) {
-            return true;
-        }
-    }
-    return false;
+const bool Box::isParticleNearBorder(Particle *particle) {
+    sf::Vector2f position = particle->position;
+    float radius = particle->radius;
+    return fabs(position.x - left) + radius < 5.0f 
+        || fabs(position.x - getRight()) + radius < 5.0f 
+        || fabs(position.y - bottom) + radius < 5.0f 
+        || fabs(position.y - getTop()) + radius < 5.0f;
 }
 
 void Box::addParticle(Particle *particle) {
-    std::cout << "addParticle" << std::endl;
     particles.emplace_back(particle);
 }
 
