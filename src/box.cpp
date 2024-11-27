@@ -1,7 +1,6 @@
 #include "box.hpp"
 
 
-
 const int Box::countParticles() {
     return particles.size();
 }
@@ -34,14 +33,22 @@ const sf::Vector2f Box::getSize() {
     return sf::Vector2f{width, height};
 }
 
-bool Box::isAdjacent(Box *box) {
-    bool is_vertically_adjacent = (getTop() == box->bottom || bottom == box->getTop());
-    bool is_horizontally_adjacent = (getRight() == box->left || left == box->getRight());
+const bool Box::isAdjacent(Box *other) {
+    const bool is_vertically_adjacent = (getTop() == other->bottom || bottom == other->getTop());
+    const bool is_horizontally_adjacent = (getRight() == other->left || left == other->getRight());
     return is_horizontally_adjacent || is_vertically_adjacent;
 }
 
 void Box::considerBorderCollisions(Particle *particle) {
-    border_particles.emplace_back(particle);
+    border_particles.push_back(particle);
+}
+
+void Box::updateBorder() {
+    for(auto &particle : border_particles) {
+        if(!isParticleNearBorder(particle)) {
+            border_particles.erase(find(border_particles.begin(), border_particles.end(), particle));
+        }
+    }
 }
 
 const bool Box::isParticleNearBorder(Particle *particle) {
@@ -54,7 +61,7 @@ const bool Box::isParticleNearBorder(Particle *particle) {
 }
 
 void Box::addParticle(Particle *particle) {
-    particles.emplace_back(particle);
+    particles.push_back(particle);
 }
 
 void Box::removeParticle(Particle *particle) {

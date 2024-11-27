@@ -1,6 +1,7 @@
 #include "node.hpp"
 
 void Node::addNode(Node *node) {
+    std::cout << "addNode" << std::endl;
     if(children.size() < 4) {
         node->root = this;
         children.push_back(node);
@@ -8,7 +9,7 @@ void Node::addNode(Node *node) {
 }
 
 void Node::addNeighbour(Node *node) {
-    neighbour_nodes.emplace_back(node);
+    neighbour_nodes.push_back(node);
 }
 
 void Node::removeNode(Node *node) {
@@ -35,8 +36,9 @@ void Node::findNeigbourNodes(Node *main, Node* node) {
     Box *main_box = main->box;
     Box *node_box = node->box;
     
-    if(node->isLeaf() && main_box->isAdjacent(node_box)) {
+    if(node->isLeaf() && main_box->isAdjacent(node_box) && neighbour_nodes.size() < 4) {
         main->addNeighbour(node);
+        return;
     }
 
     std::vector<Node*> children = node->children;

@@ -17,7 +17,7 @@ class Engine {
         Engine(int32_t max_height, int32_t max_width) : 
             max_height(max_height),
             max_width(max_width) {
-                this->box = new Box(0, 0, 1000, 1000);
+                this->box = new Box(0, 0, max_width, max_height);
                 this->root = new Node(box); 
             }
             

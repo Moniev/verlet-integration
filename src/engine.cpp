@@ -11,7 +11,7 @@ bool Engine::windowFriction(Node *node) {
 
 Particle* Engine::addParticle(sf::Vector2f position, float radius, sf::Color color) {
     Particle *new_particle = new Particle(position, radius, color);
-    particles.emplace_back(new_particle);
+    particles.push_back(new_particle);
     findNewNode(new_particle, root);
     return new_particle;
 }
@@ -68,7 +68,7 @@ void Engine::update() {
         applyBoundary(sub_step_dt);
         updateParticles(sub_step_dt);
         updateTree(root);
-        mergeTrees(root);
+        resolveBorderCollisions(root);
         updateSpatialLookup(root);
     }
 }
@@ -76,16 +76,16 @@ void Engine::update() {
 void Engine::updateTree(Node *node) {
     if(node->isLeaf()) {
         Box *box = node->box;
-        if(node->isLeaf()) {
-            resolveCollisions(box);
-            if(particles.size() >= 1000) {
-                splitTree(node);
-            }
+        std::vector<Particle*> particles = box->particles;
+        if(particles.size() >= 512) {
+            splitTree(node);
         }
+        resolveCollisions(box);
+        return;
     }   
-
+    
     std::vector<Node*> children = node->children;
-    for(auto &__children : children) {
+    for(auto *__children : children) {
         updateTree(__children);
     }
 }
@@ -95,9 +95,6 @@ void Engine::resolveCollisions(Box *box) {
     const float response_coef = 0.75f;
     for(int i = 0; i < particles.size(); i++) {
         auto &particle__i = particles[i];
-        if(box->isParticleNearBorder(particle__i)) {
-            box->considerBorderCollisions(particle__i);
-        }
         for(int j = i + 1; j < particles.size(); j++) {
             auto particle__j = particles[j];
             const sf::Vector2f v = particle__i->position - particle__j->position;
@@ -139,16 +136,28 @@ void Engine::__resolveCollisions(std::vector<Particle*> particles) {
 }
 
 void Engine::resolveBorderCollisions(Node *node) {
-    Box *box = node->box;
-    std::vector<Particle*> particles = box->border_particles;
-    std::vector<Node*> neighbours = node->neighbour_nodes;
+    if(node->isLeaf()) {
+        Box *box = node->box;
+        box->updateBorder();
+        std::vector<Particle*> particles = box->border_particles;
+        std::vector<Particle*> resolving_particles;
+        resolving_particles.insert(resolving_particles.end(), particles.begin(), particles.end());
+        std::vector<Node*> neighbours = node->neighbour_nodes;
 
-    for(auto &__neighbour : neighbours) {
-        Box *box =  __neighbour->box;
-        std::vector<Particle*> new_particles = box->particles;
-        particles.insert(particles.end(), new_particles.begin(), new_particles.end());
+        for(auto &__neighbour : neighbours) {
+            Box *new_box =  __neighbour->box;
+            std::vector<Particle*> new_particles = new_box->particles;
+            resolving_particles.insert(resolving_particles.end(), new_particles.begin(), new_particles.end());
+
+        }
+        __resolveCollisions(resolving_particles);
+        return;
     }
-    __resolveCollisions(particles);
+
+    std::vector<Node*> children = node->children;
+    for(auto &__children : children) {
+        resolveBorderCollisions(__children);
+    }
 }
 
 //new recursive formula for collisions inside quad trees 
@@ -159,18 +168,7 @@ void Engine::resolveBorderCollisions(Node *node) {
 //  2.CHECK FOR MEMORY LEAKS 
 //  3.SOME TASTY VISUAL EFFECT FOR PARTICLES
 
-void Engine::applyCollisions(Node *node) {
-    Box *box = node->box;
 
-    if(node->isLeaf()) {
-        resolveCollisions(box);
-    }
-
-    std::vector<Node*> children = node->children;
-    for(auto &__children : children) {
-        applyCollisions(__children);
-    }
-}
 
 void Engine::applyBoundary(float sub_step_dt) {
     for(auto &particle: particles) {
@@ -211,19 +209,25 @@ void Engine::findNewNode(Particle *particle, Node *node) {
             findNewNode(particle, __children);
         }
     }
+    return;
 }
 
 void Engine::updateSpatialLookup(Node *node) {
-    Box *box = node->box;
-    std::vector<Particle*> particles = box->particles;
+    resolveBorderCollisions(root);
+    if(node->isLeaf()) {
+        Box *box = node->box;
+        std::vector<Particle*> particles = box->particles;
 
-    for(auto &particle : particles) {
-        if(!particleBelong(particle, node)) {
-            box->removeParticle(particle);
-            findNewNode(particle, root);
+        box->updateBorder();
+        for(auto &particle : particles) {
+            if(!particleBelong(particle, node)) {
+                findNewNode(particle, root);
+                box->removeParticle(particle);
+                box->considerBorderCollisions(particle);
+            }
         }
+        return;
     }
-
     std::vector<Node*> children = node->children;
     for(auto &__children : node->children) {
         updateSpatialLookup(__children);
@@ -232,20 +236,26 @@ void Engine::updateSpatialLookup(Node *node) {
 
 void Engine::splitTree(Node *node) {
     Box *box = node->box;
+    box->border_particles.empty();
 
     float quarter = box->height / 2; 
     float half_width = box->width / 2;
-    
+
     Box *sub_box__1 = new Box(box->getRight() - half_width, box->bottom + half_width, quarter, quarter);
     Box *sub_box__2 = new Box(box->left, box->getTop()-half_width, quarter, quarter);
     Box *sub_box__3 = new Box(box->left, box->bottom, quarter, quarter);
     Box *sub_box__4 = new Box(box->getRight() - half_width, box->bottom, quarter, quarter);
-    
+
     Node *node__1 = new Node(sub_box__1);
     Node *node__2 = new Node(sub_box__2);
     Node *node__3 = new Node(sub_box__3);
     Node *node__4 = new Node(sub_box__4); 
-    
+
+    node__1->findNeigbourNodes(node__1, root);
+    node__2->findNeigbourNodes(node__2, root);
+    node__3->findNeigbourNodes(node__3, root);
+    node__4->findNeigbourNodes(node__4, root);
+
     node->addNode(node__1);
     node->addNode(node__2);
     node->addNode(node__3);
@@ -255,6 +265,9 @@ void Engine::splitTree(Node *node) {
     for(auto &particle : particles) {
         findNewNode(particle, root);
     }
+
+    resolveBorderCollisions(root);
+    return;
 }
 
 void Engine::mergeTrees(Node *node) {
@@ -268,13 +281,13 @@ void Engine::mergeTrees(Node *node) {
             particles_sum += box->countParticles();
         }
 
-        if(particles_sum < box->max_particles) {
+        if(particles_sum < 512) {
             std::vector<Particle*> new_particles;
             for(auto &__children : children) {
                 std::vector<Particle*> old_particles = __children->box->particles;
                 delete __children->box;
                 for(auto &particle : old_particles) {
-                    new_particles.emplace_back(particle);
+                    new_particles.push_back(particle);
                 }
                 delete __children;
             }

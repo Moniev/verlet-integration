@@ -5,7 +5,6 @@
 
 class Box{
     public:
-        int max_particles = 32;
         std::vector<Particle*> particles;
         std::vector<Particle*> border_particles;
         float left, bottom, width, height; 
@@ -25,12 +24,13 @@ class Box{
         const sf::Vector2f getCenter();
         const sf::Vector2f getSize();
         const std::vector<Particle*>& getParticles();
+        void updateBorder();
         const bool isParticleNearBorder(Particle *particle);
         void considerBorderCollisions(Particle *particle);
         const bool particleBelong(Particle *particle);
         void addParticle(Particle *particle);
         void removeParticle(Particle *particle);
-        bool isAdjacent(Box *box);
+        const bool isAdjacent(Box *other);
 };
 
 #endif
